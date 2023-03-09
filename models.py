@@ -4,7 +4,8 @@ Handles the fight logic, lives, levels and in-game score tracking.
 """
 
 import random
-from game_exceptions import GameOver
+
+import game_exceptions
 from settings import PLAYER_LIVES, ENEMY_LEVEL_LIVES
 
 
@@ -37,7 +38,7 @@ class Player:
         """method correcting the number of player's lives"""
         self.lives -= 1
         if self.lives == 0:
-            raise GameOver(self.score, self.name)
+            raise game_exceptions.GameOver(self.score, self.name)
 
     def attack(self, enemy_obj):
         """Method for determining the player's attack"""
@@ -55,13 +56,13 @@ class Player:
         result = self.fight(user_attack, enemy_attack)
 
         if result == 0:
-            print("It's a draw!")
+            print("It's a draw!\n")
         elif result == 1:
-            print("You attacked successfully!")
+            print("You attacked successfully!\n")
             enemy_obj.decrease_lives()
             self.score += 1
         else:
-            print("You missed!")
+            print("You missed!\n")
 
     def defense(self, enemy_obj):
         """Method for determining the player's defense"""
@@ -79,11 +80,11 @@ class Player:
         result = self.fight(enemy_attack, user_defense)
 
         if result == 0:
-            print("It's a draw!")
+            print("It's a draw!\n")
         elif result == 1:
-            print("You defended successfully!")
+            print("You defended successfully!\n")
         else:
-            print("You failed to defend!")
+            print("You failed to defend!\n")
             self.decrease_lives()
 
 
@@ -103,3 +104,5 @@ class Enemy:
     def decrease_lives(self):
         """Function that reduces the number of lives"""
         self.lives -= 1
+        if self.lives == 0:
+            raise game_exceptions.EnemyDown

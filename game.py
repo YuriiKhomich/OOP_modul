@@ -4,7 +4,8 @@ Main game script. Runs the game for the user.
 
 import re
 
-from game_exceptions import GameOver, EnemyDown
+import game_exceptions
+from game_exceptions import GameOver
 from models import Player, Enemy
 from settings import MAX_ENEMY_LEVELS, ENEMY_LEVEL_LIVES, ENEMY_LEVELS
 
@@ -86,50 +87,23 @@ def play():
     player = Player(validate_name(player_name))
     enemy = Enemy(ENEMY_LEVELS)
     while True:
-        print_status(player, enemy)
-        print("Select your attack:")
-        print("1) Wizard")
-        print("2) Warrior")
-        print("3) Rogue")
-        player_attack = int(get_user_input("> ", ['1', '2', '3']))
-        enemy_attack = enemy.select_attack()
-        result = player.fight(player_attack, enemy_attack)
-        if result == 0:
-            print("It's a draw!")
-        elif result == 1:
-            print("You attacked successfully!")
-            enemy.decrease_lives()
-            player.score += 1
-        else:
-            print("You missed!")
-        if enemy.lives == 0:
-            print(f"Congratulations! You defeated the enemy at level {enemy.level}!\n")
-            player.score += 5
-            print(f"Now, yours score: {player.score}")
-            next_level = input("Press any key to continue or 'No' to Game Over: ")
-            if next_level.lower() == 'no':
-                raise GameOver(player.score, player_name)
-            try:
+        try:
+            print_status(player, enemy)
+            player.attack(enemy)
+            player.defense(enemy)
+        except game_exceptions.EnemyDown as edn:
+            if enemy.lives == 0:
+                print(f"Congratulations! You defeated the enemy at level {enemy.level}!\n")
+                player.score += 5
+                print(f"Now, yours score: {player.score}\n")
+                next_level = input("Press any key to continue (!Enemy level up!) or 'No' to Game Over: ")
+                if next_level.lower() == 'no':
+                    raise GameOver(player.score, player_name) from edn
                 if enemy.level < MAX_ENEMY_LEVELS:
                     enemy = Enemy(enemy.level + 1)
                     enemy.lives = ENEMY_LEVEL_LIVES
                 else:
-                    raise GameOver(player.score, player_name)
-            except EnemyDown as edn:
-                raise GameOver(player.score, player_name) from edn
-        else:
-            enemy_attack = enemy.select_attack()
-            player_defence = int(get_user_input("Select your defence: > ", ['1', '2', '3']))
-            result = player.fight(enemy_attack, player_defence)
-            if result == 0:
-                print("It's a draw!\n")
-            elif result == 1:
-                print("You defended successfully!\n")
-            else:
-                print("You failed to defend!\n")
-                player.decrease_lives()
-                if player.lives == 0:
-                    raise GameOver(player.score, player_name)
+                    raise GameOver(player.score, player_name) from edn
 
 
 if __name__ == '__main__':
